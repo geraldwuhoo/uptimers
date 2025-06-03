@@ -9,7 +9,7 @@ COPY go/*.go .
 RUN CGO_ENABLED=1 go build -v -ldflags '-s -w -linkmode external -extldflags "static"' -trimpath -buildmode=c-archive -o libshoutrrr.a shoutrrr.go
 
 # chef
-FROM docker.io/library/rust:1.86.0 AS chef
+FROM docker.io/library/rust:1.87.0 AS chef
 RUN cargo install cargo-chef
 WORKDIR /usr/src
 
