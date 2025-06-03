@@ -131,7 +131,7 @@ build:binary:gnu:release:
 .build:container:
   stage: build
   image:
-    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug
     entrypoint: [""]
   variables:
     CGO_ENABLED: 0
