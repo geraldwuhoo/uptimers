@@ -270,7 +270,7 @@ finalize-multi-arch:release:
 release:
   extends: .release
   stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:v0.23.0
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.24.0
   needs:
     - build:binary:gnu:release
     - push:release
