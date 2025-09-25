@@ -1,5 +1,5 @@
 # build shoutrrr library
-FROM docker.io/library/golang:1.25.0-bookworm AS lib
+FROM docker.io/library/golang:1.25.1-bookworm AS lib
 WORKDIR /usr/src/app
 
 COPY go/go.mod go/go.sum ./
