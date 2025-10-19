@@ -19,7 +19,6 @@ sqlx = { version = "0.8.0", features = ["postgres", "runtime-tokio", "time", "tl
 thiserror = "2.0.0"
 time = { version = "0.3.36", features = ["parsing"] }
 openssl = { version = "0.10.64", features = ["vendored"] }
-jemallocator = "0.5.4"
 
 [profile.release]
 strip = true
