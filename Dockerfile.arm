@@ -28,6 +28,6 @@ COPY --from=lib /usr/src/app/libshoutrrr.a /usr/src/app/libshoutrrr.h ./go/
 RUN cargo build --release --target aarch64-unknown-linux-gnu --bin uptimers
 
 # Clean image
-FROM gcr.io/distroless/cc-debian12@sha256:9ce403f022aeca3fd0954e71ae43684f8be7159390d28967f3fb5b6488362196
+FROM gcr.io/distroless/cc-debian12@sha256:faebf32a284773d43457072fabde6d8ef3c7041c5fdc8f0cd687835fce0df8d7
 COPY --from=builder /usr/src/target/aarch64-unknown-linux-gnu/release/uptimers /usr/bin/uptimers
 ENTRYPOINT ["uptimers"]
