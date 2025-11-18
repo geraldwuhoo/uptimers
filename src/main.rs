@@ -86,7 +86,7 @@ async fn connect_site(
     site: &SiteModel,
     pool: &PgPool,
     shoutrrr_url: &Option<String>,
-) -> Result<StatusCode, UptimersError> {
+) -> Result<(StatusCode, bool), UptimersError> {
     let mut status_code = StatusCode::BAD_GATEWAY;
     let max_attempts = 5;
     let url = site.site.as_str();
@@ -137,7 +137,12 @@ async fn connect_site(
     .fetch_optional(pool)
     .await?;
     let previous_success = site_fact.map_or_else(|| true, |site| site.success);
-    let current_success = status_code.is_success();
+    let current_success = status_code.is_success()
+        || site
+            .success_codes
+            .as_ref()
+            .unwrap_or(&Vec::new())
+            .contains(&status_code.as_u16());
     debug!(
         "Previous success: {}, Current success: {}",
         previous_success, current_success
@@ -156,7 +161,7 @@ async fn connect_site(
             }
         }
     }
-    Ok(status_code)
+    Ok((status_code, current_success))
 }
 
 async fn connect_sites(
@@ -179,12 +184,12 @@ async fn connect_sites(
         .map(|site| async move {
             let url = &site.site;
             debug!("Attempting to connect to {}", url);
-            let status_code = connect_site(client, site, pool, shoutrrr_url).await?;
+            let (status_code, success) = connect_site(client, site, pool, shoutrrr_url).await?;
             Ok::<SiteFullModel, UptimersError>(SiteFullModel {
                 site: url.to_string(),
                 name: site.name.clone(),
                 tstamp: now,
-                success: status_code.is_success(),
+                success,
                 status_code: status_code.as_u16() as i16,
             })
         })

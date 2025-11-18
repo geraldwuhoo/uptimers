@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct SiteModel {
     pub site: String,
     pub name: String,
+    pub success_codes: Option<Vec<u16>>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
