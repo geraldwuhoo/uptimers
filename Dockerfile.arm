@@ -1,5 +1,5 @@
 # build shoutrrr library
-FROM docker.io/library/golang:1.25.4-bookworm AS lib
+FROM docker.io/library/golang:1.25.4-trixie AS lib
 WORKDIR /usr/src/app
 
 COPY go/go.mod go/go.sum ./
@@ -9,7 +9,7 @@ COPY go/*.go .
 RUN CGO_ENABLED=1 go build -v -ldflags '-s -w -linkmode external -extldflags "static"' -trimpath -buildmode=c-archive -o libshoutrrr.a shoutrrr.go
 
 # chef
-FROM docker.io/library/rust:1.91.1 AS chef
+FROM docker.io/library/rust:1.91.1-trixie AS chef
 RUN cargo install cargo-chef
 WORKDIR /usr/src
 
@@ -28,6 +28,6 @@ COPY --from=lib /usr/src/app/libshoutrrr.a /usr/src/app/libshoutrrr.h ./go/
 RUN cargo build --release --target aarch64-unknown-linux-gnu --bin uptimers
 
 # Clean image
-FROM gcr.io/distroless/cc-debian12@sha256:faebf32a284773d43457072fabde6d8ef3c7041c5fdc8f0cd687835fce0df8d7
+FROM gcr.io/distroless/cc-debian13@sha256:c3a5f89ee4f361fa1d3abb37e049be933ef047e3b39e69cd6fafda128e8e25ad
 COPY --from=builder /usr/src/target/aarch64-unknown-linux-gnu/release/uptimers /usr/bin/uptimers
 ENTRYPOINT ["uptimers"]
