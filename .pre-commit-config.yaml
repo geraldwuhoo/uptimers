@@ -14,7 +14,7 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
   - repo: https://github.com/markdownlint/markdownlint
-    rev: v0.13.0
+    rev: v0.15.0
     hooks:
       - id: markdownlint_docker
   - repo: https://github.com/hadolint/hadolint
