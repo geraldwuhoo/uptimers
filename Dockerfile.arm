@@ -1,5 +1,5 @@
 # build shoutrrr library
-FROM docker.io/library/golang:1.25.4-trixie AS lib
+FROM docker.io/library/golang:1.26.5-trixie AS lib
 WORKDIR /usr/src/app
 
 COPY go/go.mod go/go.sum ./
