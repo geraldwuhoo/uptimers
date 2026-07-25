@@ -4,7 +4,7 @@ use std::{fs::File, io::BufReader, sync::RwLock, time::Duration};
 
 use actix_web::{get, middleware::Logger, rt::time::sleep, web, App, HttpResponse, HttpServer};
 use askama::Template;
-use clap::{command, Parser};
+use clap::Parser;
 use futures::{stream, StreamExt, TryStreamExt};
 use log::{debug, error, info, warn};
 use reqwest::{Client, StatusCode};
