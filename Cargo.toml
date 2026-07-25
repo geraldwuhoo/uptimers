@@ -17,7 +17,7 @@ serde = { version = "1.0.203", features = ["derive"] }
 serde_yaml = "0.9.34"
 sqlx = { version = "0.8.0", features = ["postgres", "runtime-tokio", "time", "tls-native-tls"] }
 thiserror = "2.0.0"
-time = { version = "0.3.36", features = ["parsing"] }
+time = { version = "0.3.54", features = ["parsing"] }
 openssl = { version = "0.10.64", features = ["vendored"] }
 
 [profile.release]
