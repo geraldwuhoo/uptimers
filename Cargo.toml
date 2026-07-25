@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 actix-web = "4.14.0"
-askama = "0.14.0"
+askama = "0.16.0"
 clap = { version = "4.6.4", features = ["env", "derive"] }
 env_logger = "0.11.11"
 futures = "0.3.30"
