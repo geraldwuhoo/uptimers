@@ -18,7 +18,7 @@ serde_yaml = "0.9.34"
 sqlx = { version = "0.9.0", features = ["postgres", "runtime-tokio", "time", "tls-native-tls"] }
 thiserror = "2.0.0"
 time = { version = "0.3.54", features = ["parsing"] }
-openssl = { version = "0.10.64", features = ["vendored"] }
+openssl = { version = "0.10.81", features = ["vendored"] }
 
 [profile.release]
 strip = true
