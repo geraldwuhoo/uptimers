@@ -1,6 +1,6 @@
 stages:
-  - lint
   - dependencies
+  - lint
   - build
   - push
   - finalize
@@ -32,6 +32,12 @@ variables:
   extends: .cache
   stage: lint
   image: docker.io/library/rust:1.98.0
+  # build.rs builds the Go archive itself unless pointed at a prebuilt one,
+  # and this image has no Go toolchain.
+  needs:
+    - dependencies:libs
+  variables:
+    SHOUTRRR_LIB_DIR: ${CI_PROJECT_DIR}/go
   before_script:
     - cargo version
     - rustup component add clippy
@@ -83,14 +89,13 @@ dependencies:libs:
     - cd go
     - go mod download
     - go mod verify
-    - go build -v -ldflags "-s -w" -trimpath -buildmode=c-archive -o libshoutrrr.a shoutrrr.go
+    - go build -buildmode=c-archive -trimpath -ldflags '-s -w' -o libshoutrrr.a shoutrrr.go
     - cd ..
   artifacts:
     untracked: false
     expire_in: 1 day
     paths:
       - go/libshoutrrr.a
-      - go/libshoutrrr.h
     when: on_success
 
 .build_binary:
@@ -101,6 +106,8 @@ dependencies:libs:
     - lint:clippy
     - lint:format
     - dependencies:libs
+  variables:
+    SHOUTRRR_LIB_DIR: ${CI_PROJECT_DIR}/go
   before_script:
     - cargo version
   artifacts:

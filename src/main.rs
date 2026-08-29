@@ -156,7 +156,7 @@ async fn connect_site(
                 format!("🔴 {} down: {}", site.name, status_code)
             };
 
-            if let Err(e) = notify(shoutrrr_url, msg) {
+            if let Err(e) = notify(shoutrrr_url.clone(), msg).await {
                 error!("Failed to send notification to shoutrrr: {}", e);
             }
         }

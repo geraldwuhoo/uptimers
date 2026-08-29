@@ -6,7 +6,7 @@ COPY go/go.mod go/go.sum ./
 RUN go mod download && go mod verify
 
 COPY go/*.go .
-RUN CGO_ENABLED=1 go build -v -ldflags '-s -w -linkmode external -extldflags "static"' -trimpath -buildmode=c-archive -o libshoutrrr.a shoutrrr.go
+RUN CGO_ENABLED=1 go build -buildmode=c-archive -trimpath -ldflags '-s -w' -o libshoutrrr.a shoutrrr.go
 
 # chef
 FROM docker.io/library/rust:1.98.0-trixie AS chef
@@ -24,7 +24,10 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 RUN cargo chef cook --release --target x86_64-unknown-linux-gnu --recipe-path recipe.json
 
 COPY . .
-COPY --from=lib /usr/src/app/libshoutrrr.a /usr/src/app/libshoutrrr.h ./go/
+# Reuse the archive from the `lib` stage so this image needs no Go toolchain;
+# build.rs builds it itself when SHOUTRRR_LIB_DIR is unset.
+COPY --from=lib /usr/src/app/libshoutrrr.a ./go/
+ENV SHOUTRRR_LIB_DIR=/usr/src/go
 RUN cargo build --release --target x86_64-unknown-linux-gnu --bin uptimers
 
 # Clean image

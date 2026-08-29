@@ -20,14 +20,14 @@ pub enum UptimersError {
     #[error("serde_yaml error\n{0}")]
     SerdeYaml(#[from] serde_yaml::Error),
 
-    #[error("utf8 error \n{0}")]
-    Utf8(#[from] std::str::Utf8Error),
-
     #[error("nul error \n{0}")]
     Nul(#[from] std::ffi::NulError),
 
-    #[error("other error \n{0}")]
-    Other(String),
+    #[error("blocking task error \n{0}")]
+    Join(#[from] actix_web::rt::task::JoinError),
+
+    #[error("shoutrrr error \n{0}")]
+    Shoutrrr(String),
 }
 
 impl actix_web::error::ResponseError for UptimersError {}
