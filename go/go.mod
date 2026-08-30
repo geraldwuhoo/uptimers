@@ -1,6 +1,6 @@
 module gitlab.wuhoo.xyz/jerry/uptimers
 
-go 1.22.3
+go 1.27.0
 
 require github.com/containrrr/shoutrrr v0.8.0
 

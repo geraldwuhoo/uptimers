@@ -36,7 +36,9 @@
           postgresql
           cargo-audit
           cargo-watch
-          go
+          # Keep in sync with the go directive in go/go.mod and the golang
+          # image pins in Dockerfile, Dockerfile.arm and .gitlab-ci.yml.
+          go_1_27
           gotools
           gopls
           golint
