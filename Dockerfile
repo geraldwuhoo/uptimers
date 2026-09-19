@@ -9,7 +9,7 @@ COPY go/*.go .
 RUN CGO_ENABLED=1 go build -buildmode=c-archive -trimpath -ldflags '-s -w' -o libshoutrrr.a shoutrrr.go
 
 # chef
-FROM docker.io/library/rust:1.98.0-trixie AS chef
+FROM docker.io/library/rust:1.98.1-trixie AS chef
 RUN cargo install cargo-chef
 WORKDIR /usr/src
 

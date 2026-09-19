@@ -31,7 +31,7 @@ variables:
 .lint:
   extends: .cache
   stage: lint
-  image: docker.io/library/rust:1.98.0
+  image: docker.io/library/rust:1.98.1
   # build.rs builds the Go archive itself unless pointed at a prebuilt one,
   # and this image has no Go toolchain.
   needs:
@@ -101,7 +101,7 @@ dependencies:libs:
 .build_binary:
   extends: .cache
   stage: build
-  image: docker.io/library/rust:1.98.0
+  image: docker.io/library/rust:1.98.1
   needs:
     - lint:clippy
     - lint:format
