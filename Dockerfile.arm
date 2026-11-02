@@ -31,6 +31,6 @@ ENV SHOUTRRR_LIB_DIR=/usr/src/go
 RUN cargo build --release --target aarch64-unknown-linux-gnu --bin uptimers
 
 # Clean image
-FROM gcr.io/distroless/cc-debian13@sha256:2d34f4a0955e9d926096e0d4466c023a81b64ea0d4c03658693e620ad7cabf04
+FROM gcr.io/distroless/cc-debian13@sha256:e8ff6e10b107dbef1e0c58f88af2ba978d2234f0d52f1130f014937ee0608e92
 COPY --from=builder /usr/src/target/aarch64-unknown-linux-gnu/release/uptimers /usr/bin/uptimers
 ENTRYPOINT ["uptimers"]
