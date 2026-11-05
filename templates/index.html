@@ -29,6 +29,7 @@
             border-radius: 0.5em;
             color: white;
             display: inline-block;
+            flex-shrink: 0;
             min-width: 5em;
             padding: .35em .65em;
             text-align: center;
@@ -41,6 +42,30 @@
 
         .red {
             background-color: #dc3545;
+        }
+
+        .grey {
+            background-color: #ccc;
+        }
+
+        p {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: .6em;
+        }
+
+        .beats {
+            display: flex;
+            flex-shrink: 0;
+            gap: 3px;
+            margin-left: auto;
+        }
+
+        .beats span {
+            width: 7px;
+            height: 30px;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -56,6 +81,9 @@
                 {% let percent = "{:.2}%"|format(100.0 * site.avg.unwrap_or_default()) -%}
                 <span class="button {% if site.success %}green{% else %}red{% endif %}">{{ percent }}</span>
                 {{ site.name }}
+                <span class="beats">{% for beat in site.beats -%}
+                <span class="{% if *beat == 1 %}green{% else if *beat == 2 %}red{% else %}grey{% endif %}"></span>
+                {%- endfor %}</span>
             </p>
         </a>
         {% endfor -%}

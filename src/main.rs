@@ -1,6 +1,6 @@
 mod structures;
 
-use std::{fs::File, io::BufReader, sync::RwLock, time::Duration};
+use std::{collections::HashMap, fs::File, io::BufReader, sync::RwLock, time::Duration};
 
 use actix_web::{get, middleware::Logger, rt::time::sleep, web, App, HttpResponse, HttpServer};
 use askama::Template;
@@ -62,7 +62,16 @@ struct Args {
 #[derive(Debug, Template)]
 #[template(path = "index.html")]
 struct IndexTemplate {
-    sites: Vec<SiteStatModel>,
+    sites: Vec<RenderedSite>,
+}
+
+#[derive(Debug)]
+struct RenderedSite {
+    site: String,
+    name: String,
+    success: bool,
+    avg: Option<f64>,
+    beats: Vec<i32>,
 }
 
 #[get("/")]
@@ -237,11 +246,48 @@ async fn connect_sites(
         .await
 }
 
+const BEAT_HOURS: i64 = 24;
+
+/// Split the last day into hourly columns. 0 is unknown, 1 is up, 2 is down.
+/// The oldest hour is first. A check exactly on an hour boundary belongs to the newer hour.
+fn hour_beats(
+    rows: Vec<(String, time::OffsetDateTime, bool)>,
+    now: time::OffsetDateTime,
+) -> HashMap<String, Vec<i32>> {
+    const SLOT_SECS: i64 = 60 * 60;
+    let mut beats = HashMap::<String, Vec<i32>>::new();
+    for (site, tstamp, success) in rows {
+        let secs_ago = (now - tstamp).whole_seconds();
+        if secs_ago < 0 {
+            continue;
+        }
+        let hours_ago = (secs_ago - 1) / SLOT_SECS;
+        if !(0..BEAT_HOURS).contains(&hours_ago) {
+            continue;
+        }
+        let slots = beats
+            .entry(site)
+            .or_insert_with(|| vec![0; BEAT_HOURS as usize]);
+        let index = (BEAT_HOURS - 1 - hours_ago) as usize;
+        if !success {
+            slots[index] = 2;
+        } else if slots[index] == 0 {
+            slots[index] = 1;
+        }
+    }
+    beats
+}
+
 async fn render_page(
-    sites: &Vec<SiteModel>,
+    sites: &[SiteModel],
     page: &RwLock<String>,
     pool: &PgPool,
 ) -> Result<(), UptimersError> {
+    let site_urls = sites
+        .iter()
+        .map(|site| site.site.clone())
+        .collect::<Vec<_>>();
+
     // Select the most recent timestamps and 24 hours average uptime from each site
     let status = sqlx::query_as!(
         SiteStatModel,
@@ -287,16 +333,47 @@ async fn render_page(
             t1.site = t3.site
         ORDER BY
             t3.name;"#,
-        &sites
-            .into_iter()
-            .map(|site| site.site.clone())
-            .collect::<Vec<_>>(),
+        &site_urls,
     )
     .fetch_all(pool)
     .await?;
 
+    let checks = sqlx::query!(
+        r#"SELECT
+            site,
+            tstamp,
+            success
+        FROM
+            site_fact
+        WHERE
+            tstamp >= NOW() - INTERVAL '1 day'
+        AND
+            site = ANY($1)"#,
+        &site_urls,
+    )
+    .fetch_all(pool)
+    .await?;
+    let mut columns = hour_beats(
+        checks
+            .into_iter()
+            .map(|check| (check.site, check.tstamp, check.success))
+            .collect(),
+        time::OffsetDateTime::now_utc(),
+    );
     debug!("{:?}", status);
-    let index = IndexTemplate { sites: status };
+    let rendered = status
+        .into_iter()
+        .map(|site| RenderedSite {
+            beats: columns
+                .remove(&site.site)
+                .unwrap_or_else(|| vec![0; BEAT_HOURS as usize]),
+            site: site.site,
+            name: site.name,
+            success: site.success,
+            avg: site.avg,
+        })
+        .collect();
+    let index = IndexTemplate { sites: rendered };
     // Update the page string reference shared with the index_handler thread
     {
         debug!("Acquiring write lock to update the pre-generated status page");
@@ -368,4 +445,39 @@ async fn main() -> Result<(), UptimersError> {
     .bind((args.bind_address, args.bind_port))?
     .run()
     .await?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::hour_beats;
+    use time::OffsetDateTime;
+
+    fn ago(now: OffsetDateTime, secs: i64) -> OffsetDateTime {
+        now - time::Duration::seconds(secs)
+    }
+
+    #[test]
+    fn hour_beats_splits_the_last_day() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).unwrap();
+        let beats = hour_beats(
+            vec![
+                ("a".into(), ago(now, 24 * 3600), true),
+                ("a".into(), ago(now, 3600), true),
+                ("a".into(), ago(now, 3601), false),
+                ("a".into(), ago(now, 4000), true),
+                ("a".into(), ago(now, 0), true),
+                ("a".into(), ago(now, 24 * 3600 + 1), true),
+                ("b".into(), ago(now, 10), false),
+            ],
+            now,
+        );
+
+        let a = &beats["a"];
+        assert_eq!(a.len(), 24);
+        assert_eq!(a[0], 1);
+        assert_eq!(a[22], 2);
+        assert_eq!(a[23], 1);
+        assert!(a[1..22].iter().all(|slot| *slot == 0));
+        assert_eq!(beats["b"][23], 2);
+    }
 }

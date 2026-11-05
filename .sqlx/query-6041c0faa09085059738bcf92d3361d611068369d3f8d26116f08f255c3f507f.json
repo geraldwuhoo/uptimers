@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT\n            site,\n            tstamp,\n            success\n        FROM\n            site_fact\n        WHERE\n            tstamp >= NOW() - INTERVAL '1 day'\n        AND\n            site = ANY($1)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "site",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "site_fact",
+            "name": "site"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tstamp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "site_fact",
+            "name": "tstamp"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "success",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "site_fact",
+            "name": "success"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "6041c0faa09085059738bcf92d3361d611068369d3f8d26116f08f255c3f507f"
+}
