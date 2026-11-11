@@ -75,7 +75,7 @@ lint:format:
 dependencies:libs:
   stage: dependencies
   image:
-    name: docker.io/library/golang:1.27.3-bookworm
+    name: docker.io/library/golang:1.27.4-bookworm
   cache:
     paths:
       - .go
