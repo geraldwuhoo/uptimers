@@ -138,26 +138,27 @@ build:binary:gnu:release:
 .build:container:
   stage: build
   image:
-    name: gcr.io/kaniko-project/executor:v1.24.0-debug
-    entrypoint: [""]
+    name: quay.io/buildah/stable:v1.46.1@sha256:72b49c4af6c63850200cc8809d513691d61ceb440358faff305b540c4b9fc038
   variables:
+    STORAGE_DRIVER: overlay
+    # Native overlay; the image defaults to fuse-overlayfs, which needs /dev/fuse
+    STORAGE_OPTS: overlay.mountopt=nodev
+    BUILDAH_FORMAT: docker
+    BUILDAH_ISOLATION: chroot
     CGO_ENABLED: 0
   before_script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - echo "${CI_REGISTRY_PASSWORD}" | buildah login -u "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
   script:
     - >-
-      /kaniko/executor
-      --registry-mirror "${DOCKERIO_MIRROR}"
-      --cache=true
-      --cache-copy-layers=true
-      --cache-repo "${CI_REGISTRY_IMAGE}/build-cache-${TARGET_ARCH}"
+      buildah build
+      --layers
+      --cache-to "${CI_REGISTRY_IMAGE}/build-cache-${TARGET_ARCH}"
+      --cache-from "${CI_REGISTRY_IMAGE}/build-cache-${TARGET_ARCH}"
       --cache-ttl 168h0m0s
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/${DOCKERFILE}"
-      --destination=image
-      --no-push
-      --tarPath image-${TARGET_ARCH}.tar
+      --tag ${CI_PROJECT_NAME}
+      --file ${DOCKERFILE}
+      .
+    - buildah push localhost/${CI_PROJECT_NAME} docker-archive:image-${TARGET_ARCH}.tar
   artifacts:
     untracked: false
     expire_in: 1 day

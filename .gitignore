@@ -1,6 +1,6 @@
 /target
 .direnv
-image.tar
+image-*.tar
 .env
 uptimers_x86_64-unknown-linux-gnu
 *.swp
