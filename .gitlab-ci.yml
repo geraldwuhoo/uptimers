@@ -178,11 +178,18 @@ build:container:amd64:
 
 build:container:arm64:
   extends: .build:container
+  # Tags are AND-matched, so pick the ARM runner tag per instance
   tags:
-    - arm64
+    - ${ARM_RUNNER_TAG}
   variables:
     TARGET_ARCH: arm64
     DOCKERFILE: Dockerfile.arm
+  rules:
+    - if: $CI_SERVER_HOST == "gitlab.com"
+      variables:
+        ARM_RUNNER_TAG: saas-linux-small-arm64
+    - variables:
+        ARM_RUNNER_TAG: arm64
   artifacts:
     paths:
       - image-arm64.tar
