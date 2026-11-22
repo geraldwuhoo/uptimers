@@ -176,23 +176,29 @@ build:container:amd64:
     paths:
       - image-amd64.tar
 
-build:container:arm64:
+.build:container:arm64:
   extends: .build:container
-  # Tags are AND-matched, so pick the ARM runner tag per instance
-  tags:
-    - ${ARM_RUNNER_TAG}
   variables:
     TARGET_ARCH: arm64
     DOCKERFILE: Dockerfile.arm
-  rules:
-    - if: $CI_SERVER_HOST == "gitlab.com"
-      variables:
-        ARM_RUNNER_TAG: saas-linux-small-arm64
-    - variables:
-        ARM_RUNNER_TAG: arm64
   artifacts:
     paths:
       - image-arm64.tar
+
+# ARM runners are tagged differently on gitlab.com than on self-hosted instances
+build:container:arm64:
+  extends: .build:container:arm64
+  tags:
+    - arm64
+  rules:
+    - if: $CI_SERVER_HOST != "gitlab.com"
+
+build:container:arm64:gitlab.com:
+  extends: .build:container:arm64
+  tags:
+    - saas-linux-small-arm64
+  rules:
+    - if: $CI_SERVER_HOST == "gitlab.com"
 
 .push:
   stage: push
@@ -201,7 +207,10 @@ build:container:arm64:
     entrypoint: [""]
   needs:
     - build:container:amd64
-    - build:container:arm64
+    - job: build:container:arm64
+      optional: true
+    - job: build:container:arm64:gitlab.com
+      optional: true
   parallel: &parallel
     matrix:
       - TARGET_ARCH:
